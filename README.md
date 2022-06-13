@@ -123,7 +123,7 @@ The Lending Market is a decentralized money market forked from Compound protocol
 
 ## Accountant
 
-On genesis, type(uint).max Note is minted to the Accountant, on borrows/redeems into the cNote Lending Market, the Accountant supplies Note to the cNote contract, receiving cNote in return. On repayBorrows and mints, the Accountant redeems suppliedNote/curExRate cNOTE, and receives the Note it had previously lent to the market. The interest earned on the Note the Accountant lends to the market is swept to the treasury via an external method in Accountant.
+On genesis, all of Note (type(uint).max) is minted to the Accountant. On borrows/redeems into the cNote Lending Market, the Accountant supplies Note to the cNote contract, receiving cNote in return. On repayBorrows and mints, the Accountant redeems suppliedNote/curExRate cNOTE, and receives the Note it had previously lent to the market. The interest earned on the Note the Accountant lends to the market is swept to the treasury via an external method in Accountant.
 
 - **AccountantDelegator (138 sloc) -** Handles and delegates calls to the current implementation of AccountantDelegate.
 - **AccountantDelegate (95 sloc) -** handles the core logic of supplying/redeeming Note/cNote in the cNote lending market.
