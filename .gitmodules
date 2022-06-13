@@ -7,3 +7,6 @@
 [submodule "zeroswap"]
 	path = zeroswap
 	url = git@github.com:Plex-Engineer/zeroswap.git
+[submodule "lending-market"]
+	path = lending-market
+	url = git@github.com:Plex-Engineer/lending-market.git
