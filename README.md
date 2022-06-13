@@ -79,38 +79,38 @@ Unified Governance refers to the Governance Bridge between the Cosmos SDK Govern
 
 Zeroswap and Stableswap are sushiswap and solidly forks respectively with all fee related logic removed. No other changes were made. An externally updated TWAP oracle was added to Zeroswap in uniswap/UniswapV2Oracle.sol
 
-### [BaseV1Pair](./stableswap/contracts/BaseV1-core.sol#L37) (368 sloc):
+### [BaseV1Pair](https://github.com/Plex-Engineer/stableswap/blob/489d010eb99a0885139b2d5ed5a2d826838cc5f9/contracts/BaseV1-core.sol#:~:text=contract%20BaseV1Pair%20%7B) (368 sloc):
 
 - the pair contract containing all core logic for providing liquidity for and swapping 2 token pairs
 
-### [BaseV1Factory](./stableswap/contracts/BaseV1-core.sol#L472) (51 sloc): 
+### [BaseV1Factory](https://github.com/Plex-Engineer/stableswap/blob/489d010eb99a0885139b2d5ed5a2d826838cc5f9/contracts/BaseV1-core.sol#:~:text=contract%20BaseV1Factory%20%7B) (51 sloc): 
 
 - the factory contract containing methods to manage and create new pairs
 
-### [BaseV1Router](./stableswap/contracts/BaseV1-periphery.sol#57) (376 sloc):
+### [BaseV1Router](https://github.com/Plex-Engineer/stableswap/blob/489d010eb99a0885139b2d5ed5a2d826838cc5f9/contracts/BaseV1-periphery.sol#:~:text=contract%20BaseV1Router01%20%7B) (376 sloc):
 
 - the router contract which directs calls to the correct pair contract
 
 ## Lending Market (Compound Fork):
 
-The Lending Market is a decentralized money market forked from Compound protocol. The lending protocol utilizes the full suite of Compound Smart Contracts. The full compound documentation can be found here: https://github.com/compound-finance/compound-protocol. The modifications that we have made include the removal of proposing and voting from the GovernorBravo logic as well as the modification of Comptroller to allow for the granting of any generic ERC-20 token as a reward instead of Comp token : 
+The Lending Market is a decentralized money market forked from Compound protocol. The lending protocol utilizes the full suite of Compound Smart Contracts. The full compound documentation can be found [here](https://github.com/compound-finance/compound-protocol). The modifications that we have made include the removal of proposing and voting from the GovernorBravo logic as well as the modification of Comptroller to allow for the granting of any generic ERC-20 token as a reward instead of Comp token : 
 
 ### Compound.sol (removed):
 
 - We removed the governance token as well as any functionality related to voting or proposing in Compound
 
-### [WETH](./lending-market/contracts/WETH.sol) (80 sloc):
+### [WETH](https://github.com/Plex-Engineer/lending-market/blob/755424c1f9ab3f9f0408443e6606f94e4f08a990/contracts/WETH.sol#:~:text=contract%20WETH%20is%20EIP20Interface%20%7B) (80 sloc):
 
 - Standard Wrapped Ether contract used to wrap Manifest token in an ERC-20 format
 - Allows the Reservoir.sol contract to drip Wrapped version of Manifest token as a reward for supplying tokens to Lending Market
 
-### [GovernorBravoDelegate](./lending-market/contracts/Governance/GovernorBravoDelegate.sol) (148 sloc):
+### [GovernorBravoDelegate](https://github.com/Plex-Engineer/lending-market/blob/755424c1f9ab3f9f0408443e6606f94e4f08a990/contracts/Governance/GovernorBravoDelegate.sol#:~:text=contract%20GovernorBravoDelegate%20is%20GovernorBravoDelegateStorageV2%2C%20GovernorBravoEvents%20%7B) (148 sloc):
 
 - Responsible for the core governance logic including retrieving proposal data and queueing proposals in the timelock
 - Original implementation allowed for the creation of proposals and also had logic related to voting. This logic has been removed
 - We have implemented an interface for our Unified Governance Smart Contract
 
-### [Comptroller](./lending-market/contracts/Comptroller.sol) (735 sloc): 
+### [Comptroller](https://github.com/Plex-Engineer/lending-market/blob/755424c1f9ab3f9f0408443e6606f94e4f08a990/contracts/Comptroller.sol#:~:text=contract%20Comptroller%20is%20ComptrollerV7Storage%2C%20ComptrollerInterface%2C%20ComptrollerErrorReporter%2C%20ExponentialNoError%20%7B) (735 sloc): 
 
 - Responsible for the core business logic of the lending market
 - Identical to Compound except for a modification to the grantCompInternal() function which removes the reference to Comp() and replaces it with a reference to a generic EIP-20 Interface
@@ -139,33 +139,33 @@ The Lending Market is a decentralized money market forked from Compound protocol
 
 On genesis, type(uint).max Note is minted to the Accountant, on borrows/redeems into the cNote Lending Market, the Accountant supplies Note to the cNote contract, receiving cNote in return. On repayBorrows and mints, the Accountant redeems suppliedNote/curExRate cNOTE, and receives the Note it had previously lent to the market. The interest earned on the Note the Accountant lends to the market is swept to the treasury via an external method in Accountant.
 
-### [AccountantDelegator](./lending-market/contracts/Accountant/AccountantDelegator.sol) (138 sloc) 
+### [AccountantDelegator](https://github.com/Plex-Engineer/lending-market/blob/755424c1f9ab3f9f0408443e6606f94e4f08a990/contracts/Accountant/AccountantDelegator.sol#:~:text=contract%20AccountantDelegator%20is%20AccountantInterface%2C%20AccountantDelegatorInterface%20%7B) (138 sloc) 
 - Handles and delegates calls to the current implementation of AccountantDelegate.
 
-### [AccountantDelegate](./lending-market/contracts/Accountant/AccountantDelegate.sol) (95 sloc)
+### [AccountantDelegate](https://github.com/Plex-Engineer/lending-market/blob/755424c1f9ab3f9f0408443e6606f94e4f08a990/contracts/Accountant/AccountantDelegate.sol#:~:text=contract%20AccountantDelegate%20is%20AccountantInterface%2C%20ExponentialNoError%2C%20TokenErrorReporter%2C%20ComptrollerErrorReporter%7B) (95 sloc)
 - handles the core logic of supplying/redeeming Note/cNote in the cNote lending market.
 
-### [AccountantInterfaces](./lending-market/contracts/Accountant/AccountantInterfaces.sol) (34 sloc)
+### [AccountantInterfaces](https://github.com/Plex-Engineer/lending-market/blob/755424c1f9ab3f9f0408443e6606f94e4f08a990/contracts/Accountant/AccountantInterfaces.sol#:~:text=contract%20AccountantDelegatorStorage%20%7B) (34 sloc)
 - Interfaces that AccountantDelegat(e/or) implement. Any future proposed implementation of AccountantDelegate should extend the base AccountantDelegate contract, and should define added functionality as an interface in this file.
 
 ## Treasury
 
 The treasury receives the interest swept from the Accountant. In maintains a reserve of Note for community use. These funds are dispersed via UniGov Proposals.
 
-### [TreasuryDelegator](./lending-market/contracts/Treasury/TreasuryDelegator.sol) (131 sloc)
+### [TreasuryDelegator](https://github.com/Plex-Engineer/lending-market/blob/755424c1f9ab3f9f0408443e6606f94e4f08a990/contracts/Treasury/TreasuryDelegator.sol#:~:text=contract%20TreasuryDelegator%20is%20TreasuryDelegatorInterface%2C%20TreasuryInterface%7B) (131 sloc)
 - Handles and delegates calls to the current implementation of the Treasury.
 
-### [TreasuryDelegate](./lending-market/contracts/Treasury/TreasuryDelegate.sol) (60 sloc)
+### [TreasuryDelegate](https://github.com/Plex-Engineer/lending-market/blob/755424c1f9ab3f9f0408443e6606f94e4f08a990/contracts/Treasury/TreasuryDelegate.sol#:~:text=contract%20TreasuryDelegate%20is%20TreasuryInterface%20%7B)
 - Handles core logic of receiving funds from the Accountant, and sending funds via proposal request.
 
-### [TreasuryInterfaces](./lending-market/contracts/Treasury/TreasuryInterfaces.sol) (27 sloc)
+### [TreasuryInterfaces](https://github.com/Plex-Engineer/lending-market/blob/755424c1f9ab3f9f0408443e6606f94e4f08a990/contracts/Treasury/TreasuryInterfaces.sol#:~:text=contract%20TreasuryDelegatorStorage%20%7B) (27 sloc)
 - Interfaces that both TreasuryDelegat(e/or) implement. Any future implementations of TreasuryDelegate must extend the TreasuryDelegate contract, and should define added functionality as an interface in this file.
 
-### [CNote](./lending-market/contracts/CNote.sol) 
+### [CNote](https://github.com/Plex-Engineer/lending-market/blob/755424c1f9ab3f9f0408443e6606f94e4f08a990/contracts/CNote.sol#:~:text=contract%20CNote%20is%20CErc20Delegate%20%7B) 
 - CNote extends the CErc20Delegate base contract. It is the Lending Market for Note.
 - The mintFresh/redeemFresh, borrowFresh/repayBorrowFresh internal methods in CToken.sol are overridden here to implement the calls for Accountant to mint() or redeem() Note from the lending market when external users remove or deposit Note into the lending market as described above.
 
-### [noteInterest.sol](./lending-market/contracts/NoteInterest.sol) (61 sloc):
+### [noteInterest.sol](https://github.com/Plex-Engineer/lending-market/blob/755424c1f9ab3f9f0408443e6606f94e4f08a990/contracts/NoteInterest.sol#:~:text=contract%20NoteRateModel%20is%20InterestRateModel%20%7B) (61 sloc):
 - Custom interest rate model which sets the Borrow Rate equal to the Supply Rate
 - Interest rate is based on the difference between a USD proxy such as USDC and Note as defined by a price oracle connected to our stableswap
 - Interest rate is defined as:
