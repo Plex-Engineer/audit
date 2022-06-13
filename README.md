@@ -1,6 +1,13 @@
 # New Blockchain (Manifest)
 ### a new EVM enabled Cosmos SDK layer 1
 
+# Table of Contents
+1. [Contest Scope](#contest-scope)
+2. [Project Overview](#project-overview)
+3. [Cosmos SDK Blockchain](#cosmos-sdk-blockchain)
+4. [Smart Contracts](#smart-contracts)
+5. [Areas of Specific Concern](#areas-of-specific-concern)
+
 | Glossary |  |
 | --- | --- |
 | Manifest/wrapped-Manifest | Native token of New Blockchain, equivalent to Ethereum on the EVM  |
@@ -40,15 +47,22 @@ The stable coin of the ecosystem Note is implemented as a standard ERC-20 token 
 
 Since Note cannot be created, only borrowed, and the Supply Rate is the same as the Borrow Rate we needed to create a mechanism to keep track of how much of the interest paid by the market to borrow Note goes to the Accountant and eventually gets swept into the Treasury vs how much is paid to external suppliers. This is done by supplying and redeeming liquidity during every action taken by an external user of cNote. When users borrow Note or redeem cNote, the function in CNote will call another function in the Accountant to supply cNote in the exact amount required to offset the request. When Users supply or repay Note to the market, the function in CNote will call another function in Accountant to redeem exactly the same amount of Note from the market. This results in there never being any Note present in the CNote market other than during function calls, while also providing an infinite amount of Note to be borrowed or redeemed from the Market.
 
-## Cosmos SDK Blockchain
+---
 
-### Unigov Module (sloc 615)
+# Cosmos SDK Blockchain
+
+## Unigov Module (sloc 615)
 
 The unigov module is a wrapper around the Cosmos-sdk x/gov module. The module defines two proposal types (as well as their JSON formats): LendingMarketProposals, TreasuryProposals. The proposals are structured after the Compound-Finance Protocol’s proposal type, that is, each proposal is essentially an array of tuples: (signature, calldata, msg.value). Upon a proposal’s passing, the proposalHandler either deploys the ProposalStore contract (if it is not already deployed) or appends the proposal into the ProposalStore’s mapping ( uint ⇒ Proposal). The Unigov module uses the [evm.Call](http://evm.Call)() method from geth to route/create messages within the EVM. 
 
-- **unigov/keeper -** Defines the cosmos-sdk keeper object/interfaces, so that external modules may interact with unigov.
-- **unigov/types** - Defines the base types within unigov as well as the proto-buf generated data-structures/encoding methods.
-- **unigov/proposalHandler.go -** Defines the govtypes.Handler method required for catching Passed proposals and appending them to the ProposalStore contract.
+### unigov/keeper
+- Defines the cosmos-sdk keeper object/interfaces, so that external modules may interact with unigov.
+
+### unigov/types
+- Defines the base types within unigov as well as the proto-buf generated data-structures/encoding methods.
+
+### unigov/proposalHandler.go
+- Defines the govtypes.Handler method required for catching Passed proposals and appending them to the ProposalStore contract.
 ---
 # Smart Contracts
 
@@ -65,15 +79,15 @@ Unified Governance refers to the Governance Bridge between the Cosmos SDK Govern
 
 Zeroswap and Stableswap are sushiswap and solidly forks respectively with all fee related logic removed. No other changes were made. An externally updated TWAP oracle was added to Zeroswap in uniswap/UniswapV2Oracle.sol
 
-**BaseV1Pair (sloc 368):**
+### [BaseV1Pair](./stableswap/contracts/BaseV1-core.sol#L37) (368 sloc):
 
 - the pair contract containing all core logic for providing liquidity for and swapping 2 token pairs
 
-**BaseV1Factory (sloc 51):** 
+### [BaseV1Factory](./stableswap/contracts/BaseV1-core.sol#L472) (51 sloc): 
 
 - the factory contract containing methods to manage and create new pairs
 
-**BaseV1Router (sloc 376):**
+### [BaseV1Router](./stableswap/contracts/BaseV1-periphery.sol#57) (376 sloc):
 
 - the router contract which directs calls to the correct pair contract
 
@@ -81,22 +95,22 @@ Zeroswap and Stableswap are sushiswap and solidly forks respectively with all fe
 
 The Lending Market is a decentralized money market forked from Compound protocol. The lending protocol utilizes the full suite of Compound Smart Contracts. The full compound documentation can be found here: https://github.com/compound-finance/compound-protocol. The modifications that we have made include the removal of proposing and voting from the GovernorBravo logic as well as the modification of Comptroller to allow for the granting of any generic ERC-20 token as a reward instead of Comp token : 
 
-**Compound.sol (removed):** 
+### Compound.sol (removed):
 
 - We removed the governance token as well as any functionality related to voting or proposing in Compound
 
-**WETH.sol :**
+### [WETH](./lending-market/contracts/WETH.sol) (80 sloc):
 
 - Standard Wrapped Ether contract used to wrap Manifest token in an ERC-20 format
 - Allows the Reservoir.sol contract to drip Wrapped version of Manifest token as a reward for supplying tokens to Lending Market
 
-**GovernorBravoDelegate.sol (148 sloc):** 
+### [GovernorBravoDelegate](./lending-market/contracts/Governance/GovernorBravoDelegate.sol) (148 sloc):
 
 - Responsible for the core governance logic including retrieving proposal data and queueing proposals in the timelock
 - Original implementation allowed for the creation of proposals and also had logic related to voting. This logic has been removed
 - We have implemented an interface for our Unified Governance Smart Contract
 
-**Comptroller.sol (735 sloc):** 
+### [Comptroller](./lending-market/contracts/Comptroller.sol) (735 sloc): 
 
 - Responsible for the core business logic of the lending market
 - Identical to Compound except for a modification to the grantCompInternal() function which removes the reference to Comp() and replaces it with a reference to a generic EIP-20 Interface
@@ -119,38 +133,46 @@ The Lending Market is a decentralized money market forked from Compound protocol
 - **IMPORTANT: The internal price in the lending market used to calculate liquidity for Note is always set to 1 USD regardless of the value of Note in the Dex.**
 - Our implementation of this architecture is described below
 
-![Screen Shot 2022-06-03 at 5.33.24 PM.png](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/76e33e27-a508-4de4-a847-b2e596a3b80e/Screen_Shot_2022-06-03_at_5.33.24_PM.png)
+![flowchart](./flowchart.png)
 
 ## Accountant
 
 On genesis, type(uint).max Note is minted to the Accountant, on borrows/redeems into the cNote Lending Market, the Accountant supplies Note to the cNote contract, receiving cNote in return. On repayBorrows and mints, the Accountant redeems suppliedNote/curExRate cNOTE, and receives the Note it had previously lent to the market. The interest earned on the Note the Accountant lends to the market is swept to the treasury via an external method in Accountant.
 
-- **AccountantDelegator (138 sloc) -** Handles and delegates calls to the current implementation of AccountantDelegate.
-- **AccountantDelegate (95 sloc) -** handles the core logic of supplying/redeeming Note/cNote in the cNote lending market.
-- **AccountantInterfaces (34 sloc) -** Interfaces that AccountantDelegat(e/or) implement. Any future proposed implementation of AccountantDelegate should extend the base AccountantDelegate contract, and should define added functionality as an interface in this file.
+### [AccountantDelegator](./lending-market/contracts/Accountant/AccountantDelegator.sol) (138 sloc) 
+- Handles and delegates calls to the current implementation of AccountantDelegate.
+
+### [AccountantDelegate](./lending-market/contracts/Accountant/AccountantDelegate.sol) (95 sloc)
+- handles the core logic of supplying/redeeming Note/cNote in the cNote lending market.
+
+### [AccountantInterfaces](./lending-market/contracts/Accountant/AccountantInterfaces.sol) (34 sloc)
+- Interfaces that AccountantDelegat(e/or) implement. Any future proposed implementation of AccountantDelegate should extend the base AccountantDelegate contract, and should define added functionality as an interface in this file.
 
 ## Treasury
 
 The treasury receives the interest swept from the Accountant. In maintains a reserve of Note for community use. These funds are dispersed via UniGov Proposals.
 
-- **TreasuryDelegator (131 sloc) -** Handles and delegates calls to the current implementation of the Treasury.
-- **TreasuryDelegate (60 sloc) -** Handles core logic of receiving funds from the Accountant, and sending funds via proposal request.
-- **TreasuryInterfaces (27 sloc) -** Interfaces that both TreasuryDelegat(e/or) implement. Any future implementations of TreasuryDelegate must extend the TreasuryDelegate contract, and should define added functionality as an interface in this file.
+### [TreasuryDelegator](./lending-market/contracts/Treasury/TreasuryDelegator.sol) (131 sloc)
+- Handles and delegates calls to the current implementation of the Treasury.
 
-## CNote 
+### [TreasuryDelegate](./lending-market/contracts/Treasury/TreasuryDelegate.sol) (60 sloc)
+- Handles core logic of receiving funds from the Accountant, and sending funds via proposal request.
 
+### [TreasuryInterfaces](./lending-market/contracts/Treasury/TreasuryInterfaces.sol) (27 sloc)
+- Interfaces that both TreasuryDelegat(e/or) implement. Any future implementations of TreasuryDelegate must extend the TreasuryDelegate contract, and should define added functionality as an interface in this file.
+
+### [CNote](./lending-market/contracts/CNote.sol) 
 - CNote extends the CErc20Delegate base contract. It is the Lending Market for Note.
 - The mintFresh/redeemFresh, borrowFresh/repayBorrowFresh internal methods in CToken.sol are overridden here to implement the calls for Accountant to mint() or redeem() Note from the lending market when external users remove or deposit Note into the lending market as described above.
 
-## noteInterest.sol (61 sloc):
-
+### [noteInterest.sol](./lending-market/contracts/NoteInterest.sol) (61 sloc):
 - Custom interest rate model which sets the Borrow Rate equal to the Supply Rate
 - Interest rate is based on the difference between a USD proxy such as USDC and Note as defined by a price oracle connected to our stableswap
 - Interest rate is defined as:
     - Interest Rate = max(0,(1 - price of Note on Dex)*Adjuster Coefficient+ priorInterestRate)
 
+---
 # Areas of Specific Concern:
-
 - Possible risk of re-entrant attacks in CNote.sol (overridden modifier non-re-entrant)
 - Ensure that there is never any Note in the lending Market after a transaction completes
     - We cannot allow the lending Market to have any leftover Note after a transaction occurs otherwise our accounting of interest will be incorrect
