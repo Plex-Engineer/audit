@@ -4,3 +4,6 @@
 [submodule "manifest"]
 	path = manifest
 	url = git@github.com:Plex-Engineer/manifest.git
+[submodule "zeroswap"]
+	path = zeroswap
+	url = git@github.com:Plex-Engineer/zeroswap.git
